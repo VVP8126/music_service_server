@@ -30,6 +30,11 @@ export class TrackService {
         return allTracks;
     }
 
+    async getTrackCount(): Promise<number> {
+        const tracksCount = await this.trackModel.find().count();
+        return tracksCount;
+    }
+
     async getById(id: ObjectId): Promise<Track> {
         // function populate("comments") adds data from table "comments" to the object Track
         const track = await this.trackModel.findById(id).populate("comments");
@@ -37,6 +42,14 @@ export class TrackService {
     }
 
     async delete(id: ObjectId): Promise<ObjectId> {
+        const trackToDelete = await this.trackModel.findById(id);
+        const commentsToDelete = trackToDelete.comments;
+        let i = 0;
+        while(i < commentsToDelete.length) {
+            console.log("Delete comment with id=" + JSON.stringify(commentsToDelete[i]));
+            await this.commentModel.findByIdAndDelete(commentsToDelete[i]);
+            i++;
+        }
         const track = await this.trackModel.findByIdAndDelete(id);
         return track._id;
     }
